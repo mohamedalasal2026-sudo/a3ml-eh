@@ -8,6 +8,257 @@ import { state, saveState } from '../state/store.js';
 const APP_ID = "d7e6de52-3b7a-404f-b095-996380092c5b";
 const API_KEY = "os_v2_app_27tn4ur3pjae7mevtfryacjmlnglhifii3puu7fy5bxaw3mhsqcqa4ixztitltgr6yd5ji7hu23mu45w7u6am35q4yykd2x7pquiy7q";
 
+// Helper to detect iOS devices
+export function isIOSDevice() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
+
+// Helper to detect if app is running in Standalone (PWA) mode
+export function isPWAStandalone() {
+  return window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+}
+
+// Modal warning iOS users that they need to install the PWA first
+export function showIOSPWARequiredModal() {
+  const modalId = 'ios-pwa-required-modal';
+  let modal = document.getElementById(modalId);
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = modalId;
+    modal.className = 'fixed inset-0 bg-neutral-900/40 backdrop-blur-[2px] z-[10001] flex items-center justify-center transition-all duration-300 opacity-0 pointer-events-none select-none';
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = `
+    <div class="bg-white rounded-3xl w-full max-w-sm mx-4 p-6 border border-neutral-100 shadow-2xl text-right space-y-5 transform scale-95 transition-all duration-300" id="ios-pwa-card">
+      <div class="space-y-2">
+        <div class="w-14 h-14 bg-black text-white rounded-full flex items-center justify-center mx-auto shadow-md animate-bounce">
+          <i class="ti ti-device-mobile text-2xl"></i>
+        </div>
+        <h3 class="text-sm font-bold text-neutral-900 text-center font-sans">تفعيل الإشعارات على الآيفون 📱</h3>
+        <p class="text-xs text-neutral-500 font-sans leading-relaxed text-right">
+          نظام التشغيل iOS (الآيفون) يتطلب إضافة التطبيق إلى الشاشة الرئيسية (PWA) أولاً لكي تتمكن من تفعيل واستقبال الإشعارات الخارجية.
+        </p>
+      </div>
+
+      <div class="space-y-3 pt-1 text-xs text-neutral-700">
+        <span class="font-bold text-[10px] text-neutral-400 block uppercase">خطوات الإضافة السهلة:</span>
+        <div class="space-y-2.5">
+          <div class="flex items-start gap-2">
+            <span class="w-5 h-5 rounded-full bg-neutral-100 flex items-center justify-center text-[10px] font-bold mt-0.5 flex-shrink-0 font-sans">١</span>
+            <p class="leading-relaxed">اضغط على زر <b>المشاركة (Share)</b> <i class="ti ti-share text-sm inline-block align-middle"></i> في شريط Safari بالأسفل.</p>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="w-5 h-5 rounded-full bg-neutral-100 flex items-center justify-center text-[10px] font-bold mt-0.5 flex-shrink-0 font-sans">٢</span>
+            <p class="leading-relaxed">اسحب القائمة للأعلى واختر <b>إضافة إلى الصفحة الرئيسية (Add to Home Screen)</b> <i class="ti ti-square-plus text-sm inline-block align-middle"></i>.</p>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="w-5 h-5 rounded-full bg-neutral-100 flex items-center justify-center text-[10px] font-bold mt-0.5 flex-shrink-0 font-sans">٣</span>
+            <p class="leading-relaxed">افتح التطبيق من أيقونته الجديدة على الشاشة الرئيسية وقم بتفعيل الإشعارات.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-2">
+        <button type="button" id="ios-pwa-close-btn"
+          class="w-full py-3 bg-black hover:bg-neutral-800 text-white text-xs font-bold rounded-2xl transition-all shadow-md font-sans">
+          فهمت
+        </button>
+      </div>
+    </div>
+  `;
+
+  const closeBtn = modal.querySelector('#ios-pwa-close-btn');
+  const closeOverlay = () => {
+    modal.classList.add('opacity-0', 'pointer-events-none');
+    const card = document.getElementById('ios-pwa-card');
+    if (card) {
+      card.classList.add('scale-95');
+      card.classList.remove('scale-100');
+    }
+  };
+
+  closeBtn.addEventListener('click', closeOverlay);
+
+  // Open animation
+  setTimeout(() => {
+    modal.classList.remove('opacity-0', 'pointer-events-none');
+    const card = document.getElementById('ios-pwa-card');
+    if (card) {
+      card.classList.remove('scale-95');
+      card.classList.add('scale-100');
+    }
+  }, 50);
+}
+
+// Modal guide showing users how to manually unblock/enable notifications
+export function showBlockedNotificationsGuideModal() {
+  const modalId = 'blocked-notif-guide-modal';
+  let modal = document.getElementById(modalId);
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = modalId;
+    modal.className = 'fixed inset-0 bg-neutral-900/40 backdrop-blur-[2px] z-[10001] flex items-center justify-center transition-all duration-300 opacity-0 pointer-events-none select-none';
+    document.body.appendChild(modal);
+  }
+
+  const isIOS = isIOSDevice();
+
+  modal.innerHTML = `
+    <div class="bg-white rounded-3xl w-full max-w-sm mx-4 p-6 border border-neutral-100 shadow-2xl text-right space-y-5 transform scale-95 transition-all duration-300" id="blocked-notif-card">
+      <div class="space-y-2">
+        <div class="w-14 h-14 bg-neutral-100 text-neutral-800 rounded-full flex items-center justify-center mx-auto shadow-md">
+          <i class="ti ti-settings text-2xl"></i>
+        </div>
+        <h3 class="text-sm font-bold text-neutral-900 text-center font-sans">تفعيل الإشعارات يدوياً ⚙️</h3>
+        <p class="text-xs text-neutral-500 font-sans leading-relaxed text-right">
+          يبدو أن أذونات الإشعارات محظورة في متصفحك أو إعدادات هاتفك. يرجى تفعيلها يدوياً باتباع الخطوات التالية:
+        </p>
+      </div>
+
+      <!-- OS Tabs to toggle instructions -->
+      <div class="flex bg-neutral-100 p-1 rounded-2xl text-xs font-bold text-neutral-600">
+        <button type="button" id="tab-android-btn" class="flex-1 py-2 text-center rounded-xl transition-all ${!isIOS ? 'bg-white text-black shadow-sm' : ''}">أندرويد / Chrome</button>
+        <button type="button" id="tab-ios-btn" class="flex-1 py-2 text-center rounded-xl transition-all ${isIOS ? 'bg-white text-black shadow-sm' : ''}">آيفون / iOS</button>
+      </div>
+
+      <!-- Android Guide Content -->
+      <div class="space-y-3 text-xs text-neutral-700 ${isIOS ? 'hidden' : ''}" id="guide-android-content">
+        <span class="font-bold text-[10px] text-neutral-400 block uppercase">على متصفح كروم / أندرويد:</span>
+        <div class="space-y-2.5">
+          <div class="flex items-start gap-2">
+            <span class="w-5 h-5 rounded-full bg-neutral-100 flex items-center justify-center text-[10px] font-bold mt-0.5 flex-shrink-0 font-sans font-bold">١</span>
+            <p class="leading-relaxed">اضغط على أيقونة <b>الخيارات/الضبط 🔒</b> بجانب رابط الموقع في شريط العنوان بالأعلى.</p>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="w-5 h-5 rounded-full bg-neutral-100 flex items-center justify-center text-[10px] font-bold mt-0.5 flex-shrink-0 font-sans font-bold">٢</span>
+            <p class="leading-relaxed">اختر <b>الأذونات (Permissions)</b> أو إعدادات الموقع.</p>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="w-5 h-5 rounded-full bg-neutral-100 flex items-center justify-center text-[10px] font-bold mt-0.5 flex-shrink-0 font-sans font-bold">٣</span>
+            <p class="leading-relaxed">قم بتفعيل خيار <b>الإشعارات (Notifications)</b>.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- iOS Guide Content -->
+      <div class="space-y-3 text-xs text-neutral-700 ${!isIOS ? 'hidden' : ''}" id="guide-ios-content">
+        <span class="font-bold text-[10px] text-neutral-400 block uppercase">على هاتف الآيفون (iOS):</span>
+        <div class="space-y-2.5">
+          <div class="flex items-start gap-2">
+            <span class="w-5 h-5 rounded-full bg-neutral-100 flex items-center justify-center text-[10px] font-bold mt-0.5 flex-shrink-0 font-sans font-bold">١</span>
+            <p class="leading-relaxed">اذهب إلى <b>إعدادات الهاتف (Settings)</b> الرئيسية.</p>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="w-5 h-5 rounded-full bg-neutral-100 flex items-center justify-center text-[10px] font-bold mt-0.5 flex-shrink-0 font-sans font-bold">٢</span>
+            <p class="leading-relaxed">اختر <b>إشعارات (Notifications)</b>.</p>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="w-5 h-5 rounded-full bg-neutral-100 flex items-center justify-center text-[10px] font-bold mt-0.5 flex-shrink-0 font-sans font-bold">٣</span>
+            <p class="leading-relaxed">ابحث عن تطبيق <b>"اعمل ايه!؟"</b> في القائمة، وفَعّل <b>السماح بالإشعارات (Allow Notifications)</b>.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-2">
+        <button type="button" id="blocked-guide-close-btn"
+          class="w-full py-3 bg-black hover:bg-neutral-800 text-white text-xs font-bold rounded-2xl transition-all shadow-md font-sans">
+          فهمت
+        </button>
+      </div>
+    </div>
+  `;
+
+  const closeBtn = modal.querySelector('#blocked-guide-close-btn');
+  const tabAndroid = modal.querySelector('#tab-android-btn');
+  const tabIos = modal.querySelector('#tab-ios-btn');
+  const guideAndroid = modal.querySelector('#guide-android-content');
+  const guideIos = modal.querySelector('#guide-ios-content');
+
+  const closeOverlay = () => {
+    modal.classList.add('opacity-0', 'pointer-events-none');
+    const card = document.getElementById('blocked-notif-card');
+    if (card) {
+      card.classList.add('scale-95');
+      card.classList.remove('scale-100');
+    }
+  };
+
+  closeBtn.addEventListener('click', closeOverlay);
+
+  tabAndroid.addEventListener('click', () => {
+    tabAndroid.className = "flex-1 py-2 text-center rounded-xl transition-all bg-white text-black shadow-sm";
+    tabIos.className = "flex-1 py-2 text-center rounded-xl transition-all";
+    guideAndroid.classList.remove('hidden');
+    guideIos.classList.add('hidden');
+  });
+
+  tabIos.addEventListener('click', () => {
+    tabIos.className = "flex-1 py-2 text-center rounded-xl transition-all bg-white text-black shadow-sm";
+    tabAndroid.className = "flex-1 py-2 text-center rounded-xl transition-all";
+    guideIos.classList.remove('hidden');
+    guideAndroid.classList.add('hidden');
+  });
+
+  // Open animation
+  setTimeout(() => {
+    modal.classList.remove('opacity-0', 'pointer-events-none');
+    const card = document.getElementById('blocked-notif-card');
+    if (card) {
+      card.classList.remove('scale-95');
+      card.classList.add('scale-100');
+    }
+  }, 50);
+}
+
+// Unified function to request notification permission and handle errors/blocking/iOS standalone requirements
+export async function requestNotificationPermissionAndHandle() {
+  if (!('Notification' in window)) {
+    console.warn("Notifications are not supported in this browser.");
+    return false;
+  }
+
+  const isIOS = isIOSDevice();
+  const isStandalone = isPWAStandalone();
+
+  if (isIOS && !isStandalone) {
+    showIOSPWARequiredModal();
+    return false;
+  }
+
+  if (Notification.permission === 'denied') {
+    showBlockedNotificationsGuideModal();
+    return false;
+  }
+
+  let success = false;
+  try {
+    if (window.OneSignal && window.OneSignal.Notifications) {
+      const permission = await window.OneSignal.Notifications.requestPermission();
+      success = (permission === true || permission === 'granted' || window.OneSignal.Notifications.permission === true);
+    } else {
+      const permission = await Notification.requestPermission();
+      success = (permission === 'granted');
+    }
+  } catch (err) {
+    console.warn("Error requesting notification permission:", err);
+  }
+
+  // Double check actual status after request
+  if (!success && Notification.permission === 'denied') {
+    showBlockedNotificationsGuideModal();
+  }
+
+  return success;
+}
+
+// Expose helpers globally
+window.isIOSDevice = isIOSDevice;
+window.isPWAStandalone = isPWAStandalone;
+window.showIOSPWARequiredModal = showIOSPWARequiredModal;
+window.showBlockedNotificationsGuideModal = showBlockedNotificationsGuideModal;
+window.requestNotificationPermissionAndHandle = requestNotificationPermissionAndHandle;
+
 // Initialize OneSignal SDK
 export function initOneSignal() {
   // Check and show permission popup overlay on startup (outside deferred push to run immediately even if SDK blocks/fails)
@@ -107,27 +358,7 @@ export function showNotificationPermissionOverlay() {
 
   allowBtn.addEventListener('click', async () => {
     closeOverlay();
-    // Use OneSignal push request if loaded, otherwise native fallback
-    if (window.OneSignal && window.OneSignal.Notifications) {
-      try {
-        await window.OneSignal.Notifications.requestPermission();
-      } catch (e) {
-        console.warn("OneSignal permission request failed, calling native fallback:", e);
-        if ('Notification' in window) {
-          try {
-            await Notification.requestPermission();
-          } catch (err) {
-            console.warn(err);
-          }
-        }
-      }
-    } else if ('Notification' in window) {
-      try {
-        await Notification.requestPermission();
-      } catch (e) {
-        console.warn("Native permission request failed:", e);
-      }
-    }
+    await requestNotificationPermissionAndHandle();
   });
 
   cancelBtn.addEventListener('click', () => {
@@ -409,15 +640,7 @@ export function openActionReminderModal(actionId, actionTitle) {
     const minutes = parseInt(input ? input.value : '30') || 30;
     
     // Request native permission if not granted yet
-    if (window.OneSignal && window.OneSignal.Notifications) {
-      if (window.OneSignal.Notifications.permission !== true) {
-        try {
-          await window.OneSignal.Notifications.requestPermission();
-        } catch (e) {
-          console.warn("OneSignal permission request failed inside reminder:", e);
-        }
-      }
-    }
+    await requestNotificationPermissionAndHandle();
 
     const scheduleTime = new Date(Date.now() + minutes * 60 * 1000);
     const notificationId = await scheduleOneSignalNotification(
@@ -459,14 +682,8 @@ window.toggleCustomNotificationWidget = async (btn, hiddenInputId, containerId) 
   hiddenInput.value = newEnabledState ? 'true' : 'false';
 
   // Request native permission if enabling and not granted yet
-  if (newEnabledState && window.OneSignal && window.OneSignal.Notifications) {
-    if (window.OneSignal.Notifications.permission !== true) {
-      try {
-        await window.OneSignal.Notifications.requestPermission();
-      } catch (e) {
-        console.warn("OneSignal permission request failed inside toggle widget:", e);
-      }
-    }
+  if (newEnabledState) {
+    await requestNotificationPermissionAndHandle();
   }
 
   const icon = btn.querySelector('i');
@@ -699,14 +916,8 @@ export function openNotificationSettingsPopup(prefix) {
     offsetInput.value = localOffset;
 
     // Request native permission if enabling and not granted yet
-    if (localEnabled && window.OneSignal && window.OneSignal.Notifications) {
-      if (window.OneSignal.Notifications.permission !== true) {
-        try {
-          await window.OneSignal.Notifications.requestPermission();
-        } catch (e) {
-          console.warn("OneSignal permission request failed inside confirm config:", e);
-        }
-      }
+    if (localEnabled) {
+      await requestNotificationPermissionAndHandle();
     }
 
     // Trigger visual change on side bell button
