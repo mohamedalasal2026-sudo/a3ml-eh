@@ -320,12 +320,21 @@ export function showNotificationPermissionOverlay() {
   }
 
   modal.innerHTML = `
-    <div class="bg-white rounded-3xl w-full max-w-sm mx-4 p-6 border border-neutral-100 shadow-2xl text-center space-y-5 transform scale-95 transition-all duration-300" id="notif-permission-card">
+    <div class="bg-gradient-to-br from-neutral-900 via-neutral-950 to-neutral-900 border border-neutral-800 rounded-3xl w-full max-w-sm mx-4 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] text-center space-y-5 transform scale-95 transition-all duration-300" id="notif-permission-card">
+      
+      <!-- GitHub Update Indicator -->
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold mx-auto font-sans select-none">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>تحديث الإشعارات نشط (GitHub v2.2) 🟢</span>
+      </div>
+
       <div class="space-y-2">
-        <div class="w-14 h-14 bg-black text-white rounded-full flex items-center justify-center mx-auto shadow-md animate-wiggle">
-          <i class="ti ti-bell-ringing text-2xl"></i>
+        <div class="w-16 h-16 bg-neutral-800 border border-neutral-700 text-white rounded-full flex items-center justify-center mx-auto shadow-lg relative">
+          <i class="ti ti-bell-ringing text-2xl animate-wiggle"></i>
+          <span class="absolute top-0 right-0 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-neutral-900 animate-ping"></span>
+          <span class="absolute top-0 right-0 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-neutral-900"></span>
         </div>
-        <h3 class="text-sm font-bold text-neutral-900 uppercase tracking-wider font-sans">تفعيل التنبيهات الخارجية 🔔</h3>
+        <h3 class="text-sm font-bold text-white uppercase tracking-wider font-sans">تفعيل التنبيهات الخارجية 🔔</h3>
         <p class="text-xs text-neutral-400 font-sans leading-relaxed text-right">
           عشان يوصلك روتينك اليومي، المهام العاجلة، وخطوات العلاج بره البرنامج وتظهرلك دايماً في إشعارات الموبايل الخارجية (System Notifications)، يرجى السماح بتفعيل التنبيهات.
         </p>
@@ -333,11 +342,11 @@ export function showNotificationPermissionOverlay() {
 
       <div class="flex flex-col gap-2 pt-2">
         <button type="button" id="notif-allow-btn"
-          class="w-full py-3.5 bg-black hover:bg-neutral-800 text-white text-xs font-bold rounded-2xl transition-all shadow-md flex items-center justify-center gap-1.5 font-sans">
+          class="w-full py-3.5 bg-white hover:bg-neutral-100 text-black text-xs font-bold rounded-2xl transition-all shadow-md flex items-center justify-center gap-1.5 font-sans active:scale-[0.98]">
           <span>تفعيل الإشعارات الآن ⚡</span>
         </button>
         <button type="button" id="notif-cancel-btn"
-          class="w-full py-3 px-4 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-bold rounded-2xl transition-all">
+          class="w-full py-3 px-4 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs font-bold rounded-2xl transition-all active:scale-[0.98]">
           ليس الآن
         </button>
       </div>
