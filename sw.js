@@ -4,7 +4,7 @@ try {
   console.warn('[Service Worker] OneSignal SDK failed to load. Push notifications might be inactive offline.', e);
 }
 
-const CACHE_NAME = 'eh-pwa-cache-v6';
+const CACHE_NAME = 'eh-pwa-cache-v7';
 
 const PRECACHE_ASSETS = [
   './',

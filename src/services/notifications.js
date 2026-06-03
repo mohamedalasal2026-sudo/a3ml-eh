@@ -214,6 +214,7 @@ export function showBlockedNotificationsGuideModal() {
 // Unified function to request notification permission and handle errors/blocking/iOS standalone requirements
 export async function requestNotificationPermissionAndHandle() {
   if (!('Notification' in window)) {
+    if (window.showToast) window.showToast("متصفحك لا يدعم الإشعارات الخارجية ⚠️", "warning");
     console.warn("Notifications are not supported in this browser.");
     return false;
   }
@@ -231,22 +232,59 @@ export async function requestNotificationPermissionAndHandle() {
     return false;
   }
 
+  if (window.showToast) window.showToast("جاري طلب الصلاحية من المتصفح... ⏳", "info");
+
   let success = false;
   try {
+    // Robust promise-based wrapper for native requestPermission (handles callback compatibility for mobile browsers)
+    const requestNativePermission = () => {
+      return new Promise((resolve) => {
+        try {
+          const permissionPromise = Notification.requestPermission((result) => {
+            resolve(result);
+          });
+          if (permissionPromise && typeof permissionPromise.then === 'function') {
+            permissionPromise.then(resolve);
+          }
+        } catch (err) {
+          console.warn("Native Notification.requestPermission failed:", err);
+          resolve(Notification.permission);
+        }
+      });
+    };
+
+    let permissionResult = 'default';
     if (window.OneSignal && window.OneSignal.Notifications) {
-      const permission = await window.OneSignal.Notifications.requestPermission();
-      success = (permission === true || permission === 'granted' || window.OneSignal.Notifications.permission === true);
+      permissionResult = await window.OneSignal.Notifications.requestPermission();
+      success = (permissionResult === true || permissionResult === 'granted' || window.OneSignal.Notifications.permission === true);
     } else {
-      const permission = await Notification.requestPermission();
-      success = (permission === 'granted');
+      permissionResult = await requestNativePermission();
+      success = (permissionResult === 'granted');
     }
   } catch (err) {
     console.warn("Error requesting notification permission:", err);
   }
 
-  // Double check actual status after request
-  if (!success && Notification.permission === 'denied') {
+  // If permission was not granted (success is false), show manual guide modal as fallback
+  if (!success) {
+    if (window.showToast) window.showToast("يرجى تفعيل الإشعارات يدوياً ⚙️", "info");
     showBlockedNotificationsGuideModal();
+  } else {
+    if (window.showToast) window.showToast("تم تفعيل الإشعارات بنجاح! 🎉🔔", "success");
+    
+    // Sync notifications since they are now enabled
+    try {
+      if (window.OneSignal && window.OneSignal.User && window.OneSignal.User.PushSubscription) {
+        const subId = window.OneSignal.User.PushSubscription.id;
+        if (subId) {
+          window.onesignalSubscriptionId = subId;
+          localStorage.setItem('onesignal_subscription_id', subId);
+        }
+      }
+      syncAllNotifications();
+    } catch (e) {
+      console.warn("Sync after permission grant failed:", e);
+    }
   }
 
   return success;
@@ -366,8 +404,13 @@ export function showNotificationPermissionOverlay() {
   };
 
   allowBtn.addEventListener('click', async () => {
+    // Disable button to show progress
+    allowBtn.disabled = true;
+    allowBtn.innerHTML = `<span>جاري التفعيل... ⏳</span>`;
+    
+    const success = await requestNotificationPermissionAndHandle();
+    
     closeOverlay();
-    await requestNotificationPermissionAndHandle();
   });
 
   cancelBtn.addEventListener('click', () => {
