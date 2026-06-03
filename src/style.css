@@ -1,0 +1,182 @@
+/**
+ * Eleven Health — Custom Easing, Inputs & Micro-Animations Style System
+ */
+
+body {
+  background-color: #FAFAFA;
+  font-family: 'IBM Plex Sans Arabic', 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Elegant Custom Checkbox */
+input[type="checkbox"].custom-checkbox {
+  appearance: none;
+  background-color: #fff;
+  margin: 0;
+  width: 1.35em;
+  height: 1.35em;
+  border: 1.5px solid #E5E5E5;
+  border-radius: 6px;
+  display: grid;
+  place-content: center;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+input[type="checkbox"].custom-checkbox::before {
+  content: "";
+  width: 0.65em;
+  height: 0.65em;
+  transform: scale(0);
+  transition: 120ms transform ease-in-out;
+  box-shadow: inset 1em 1em #000;
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  transform-origin: center;
+}
+
+input[type="checkbox"].custom-checkbox:checked {
+  border-color: #000;
+  background-color: #000;
+}
+
+input[type="checkbox"].custom-checkbox:checked::before {
+  transform: scale(1);
+  box-shadow: inset 1em 1em #fff;
+}
+
+/* Custom range input (Sleep Slider) */
+input[type="range"].custom-slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 3px;
+  background: #E5E5E5;
+  border-radius: 2px;
+  outline: none;
+}
+
+input[type="range"].custom-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #000000;
+  cursor: pointer;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+input[type="range"].custom-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  background-color: #1A1A1A;
+}
+
+/* Scrollbar Aesthetics */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FAFAFA;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #E5E5E5;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #C4C4C0;
+}
+
+/* Action Stack card transitions */
+.action-card {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Bespoke premium animations for feeling cards */
+.feeling-card {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (hover: hover) {
+  .feeling-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.04);
+    border-color: #000000 !important;
+  }
+}
+
+.feeling-card:active {
+  transform: translateY(-1px) scale(0.98);
+}
+
+/* Health Icons custom classes and transition/inversion */
+.health-icon {
+  transition: all 0.3s ease;
+}
+
+.group:hover .health-icon {
+  filter: invert(1) brightness(2);
+}
+
+/* Smooth height transitions for sliding reason inputs */
+.slide-down-container {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+  opacity: 0;
+}
+
+.slide-down-container.open {
+  max-height: 80px;
+  opacity: 1;
+}
+
+/* Horizontal pill scrollbars */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Shake Keyframes for security errors */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+/* Wiggle Keyframes for Custom Notification Bell Toggle */
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  15% { transform: rotate(15deg); }
+  30% { transform: rotate(-12deg); }
+  45% { transform: rotate(10deg); }
+  60% { transform: rotate(-8deg); }
+  75% { transform: rotate(4deg); }
+  85% { transform: rotate(-2deg); }
+}
+
+.animate-wiggle {
+  animation: wiggle 0.6s ease-in-out;
+}
+
+/* FadeIn Keyframes for expandable panels */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>اعمل ايه !؟ — اعمل.ايه!؟</title>
+
+  <!-- PWA Manifest & Icons -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#FAFAFA" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1A1A1A" media="(prefers-color-scheme: dark)">
+  <meta name="color-scheme" content="light">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="اعمل ايه!؟">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+
+  <!-- Early Capture of PWA Install Prompt -->
+  <script>
+    window.deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      window.deferredPrompt = e;
+      const pwaSection = document.getElementById('settings-pwa-section');
+      if (pwaSection) {
+        pwaSection.classList.remove('hidden');
+      }
+    });
+  </script>
+
+  <!-- OneSignal Web Push SDK -->
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts CDN: Plus Jakarta Sans & IBM Plex Sans Arabic -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <!-- Tabler Icons CSS CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
+  <!-- Tailwind Configuration for Custom Aesthetics -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"IBM Plex Sans Arabic"', '"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            warmgray: {
+              50: '#FAFAFA',
+              100: '#F4F4F3',
+              200: '#EAEAE8',
+              300: '#DFDFDC',
+              400: '#C4C4C0',
+              500: '#A6A6A1',
+            },
+            accent: {
+              black: '#000000',
+              charcoal: '#1A1A1A',
+            }
+          },
+          borderRadius: {
+            'pill': '9999px',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom Styles for range range inputs, custom checkboxes, etc. -->
+  <link rel="stylesheet" href="./src/style.css">
+</head>
+
+<body class="bg-[#FAFAFA] text-neutral-900 min-h-screen selection:bg-black selection:text-white antialiased">
+
+  <!-- App Main Mount layout -->
+  <div id="app"></div>
+
+  <!-- Bootstrapper Module -->
+  <script type="module" src="./src/main.js"></script>
+
+</body>
+<style>
+  #reset-confirm-card::-webkit-scrollbar {
+    display: none;
+  }
+</style>
+
+</html>
